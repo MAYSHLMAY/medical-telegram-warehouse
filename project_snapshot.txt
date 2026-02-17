@@ -1,0 +1,1046 @@
+--- FULL PROJECT STRUCTURE ---
+./
+    .env
+    .gitignore
+    discovery_session.session
+    project_snapshot.txt
+    README.md
+    requirements.txt
+    sample.py
+    scraping_session.session
+    yolov8n.pt
+    api/
+        main.py
+    assets/
+        api_all_data.png
+        api_confirmed_only.png
+        api_search_results.png
+    medical_warehouse/
+        .gitignore
+        dbt_project.yml
+        README.md
+        analyses/
+            .gitkeep
+        macros/
+            .gitkeep
+        models/
+            marts/
+                fact_medical_messages.sql
+            staging/
+                src_telegram.yml
+                stg_telegram_messages.sql
+        seeds/
+            .gitkeep
+        snapshots/
+            .gitkeep
+        target/
+            graph.gpickle
+            graph_summary.json
+            manifest.json
+            partial_parse.msgpack
+            run_results.json
+            semantic_manifest.json
+            compiled/
+                medical_warehouse/
+                    models/
+                        example/
+                            my_first_dbt_model.sql
+                            my_second_dbt_model.sql
+                        marts/
+                            fact_medical_messages.sql
+                        staging/
+                            stg_telegram_messages.sql
+            run/
+                medical_warehouse/
+                    models/
+                        example/
+                            my_first_dbt_model.sql
+                            my_second_dbt_model.sql
+                        marts/
+                            fact_medical_messages.sql
+                        staging/
+                            stg_telegram_messages.sql
+        tests/
+            .gitkeep
+    scripts/
+        discover_channels.py
+    src/
+        database_loader.py
+        data_cleaner.py
+        link_detections.py
+        object_detector.py
+        scraper.py
+    tests/
+
+--- DETAILED FILE CONTENTS ---
+
+
+FILE: .\.env
+------------------------------
+TG_API_ID=31050256
+TG_API_HASH=81a8d4e87eef53b26770f447f51a9064
+DB_HOST=localhost
+DB_NAME=telegram_db
+DB_USER=postgres
+DB_PASSWORD=admin123
+DB_PORT=5432
+------------------------------
+
+
+FILE: .\.gitignore
+------------------------------
+# Python Standard
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Data & Logs
+data/
+*.log
+
+# Telegram Sessions
+*.session
+*.session-journal
+
+# --- NEW ADDITIONS ---
+
+# dbt (Data Build Tool)
+# These folders contain large compiled SQL files and logs
+target/
+dbt_packages/
+dbt_modules/
+
+# Playwright
+# To prevent uploading automated browser binaries or test traces
+test-results/
+playwright-report/
+blob-report/
+playwright/.local-browsers/
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+------------------------------
+
+
+FILE: .\README.md
+------------------------------
+# 🏥 Medical Data Warehouse: Telegram to API Pipeline
+
+**Author:** Mikiyas Dawit Abera  
+**Project Type:** Data Engineering & AI Integration  
+**Stack:** Python, PostgreSQL, FastAPI, YOLOv8, dbt, Playwright
+
+## 📌 Project Overview
+This project is a comprehensive data pipeline that extracts medical information from Amharic and English Telegram channels, cleans the data, runs AI object detection on associated images, and serves the refined data through a robust FastAPI backend.
+
+The goal is to provide a searchable, structured "Warehouse" for medical updates, specifically focusing on Ethiopian public health data like Marburg Virus updates and pharmaceutical information.
+
+---
+
+## 🏗️ System Architecture
+
+1.  **Ingestion:** Telegram Scraper extracts raw messages and images.
+2.  **Transformation (dbt):** Raw data is staged in PostgreSQL and structured using dbt.
+3.  **Refinement (Python):** * **Cleaning:** Removes emojis, ads, and irrelevant football/news content.
+    * **AI Logic:** Uses **YOLOv8** to detect medical objects in images.
+4.  **Serving:** A **FastAPI** interface allows users to query the warehouse via keywords or detection status.
+
+---
+
+## 🚀 API Features & Documentation
+
+The API is fully documented with Swagger UI and supports multilingual search (English & Amharic).
+
+### 1. Global Data Access
+Fetches all processed medical records, including cleaned text and detection flags.
+![All Medical Records](./assets/api_all_data.png)
+
+### 2. YOLO Confirmed Detections
+Filters the warehouse to return only records where the AI successfully identified medical equipment or medicine.
+![Confirmed Detections](./assets/api_confirmed_only.png)
+
+### 3. Smart Keyword Search
+Supports case-insensitive search and partial matches for medical terms.
+**Example:** Searching for *"Marburg"* returns all daily virus updates.
+![Search Results](./assets/api_search_results.png)
+
+---
+
+## 🛠️ Technical Implementation
+
+### Data Cleaning
+Standardized cleaning logic to ensure high-quality text for downstream analysis:
+```python
+def clean_text(text):
+    # Removes URLs, emojis, and non-medical noise
+    # Standardizes Amharic and English scripts
+    ...
+
+```
+
+### Database Protection
+
+The API utilizes **SQLAlchemy Parameterized Queries** to prevent SQL injection attacks:
+
+```python
+query = text("SELECT * FROM refined.medical_data WHERE cleaned_content ILIKE :key")
+df = pd.read_sql(query, engine, params={"key": f"%{keyword}%"})
+
+```
+
+### Automated Documentation
+
+The screenshots above were generated using an automated **Playwright** script that executes live API calls and captures the full-page response.
+
+---
+
+## 📁 Folder Structure
+
+```text
+.
+├── api/                # FastAPI application logic
+├── src/                # Cleaning & YOLO detection scripts
+├── models/             # dbt models for SQL transformation
+├── assets/             # Automated API documentation screenshots
+├── .env                # Database credentials (hidden)
+└── main.py             # Entry point for the API
+
+```
+
+## ⚙️ Setup & Installation
+
+1. Clone the repository.
+2. Install dependencies: `pip install -r requirements.txt`
+3. Configure your `.env` with PostgreSQL credentials.
+4. Run the API: `uvicorn api.main:app --reload`
+5. Access docs at: `http://127.0.0.1:8000/docs`
+
+
+### 🌟 Final Check for MAYSHLAMY:
+1.  **GitHub Link:** Since we discussed your GitHub format before, remember to name your file `main.py` inside the `api/` folder so your links like `https://github.com/MAYSHLAMY/A2SV_Solved_Questions/blob/main/api/main.py` work perfectly.
+2.  **Images:** Make sure the filenames in the `assets/` folder match exactly what is written in the Markdown.
+
+**Would you like me to help you write the `requirements.txt` file so anyone can install your project with one command?**
+
+------------------------------
+
+
+FILE: .\sample.py
+------------------------------
+import os
+
+def generate_snapshot():
+    # Folders to completely ignore
+    exclude_dirs = {'.git', 'venv', 'data', '__pycache__', 'logs', 'notebooks', 'node_modules'}
+    # File extensions to include in the content dump
+    include_extensions = {'.py', '.md', '.sql', '.gitignore', '.env'}
+    
+    output_file = "project_snapshot.txt"
+    
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write("--- FULL PROJECT STRUCTURE ---\n")
+        
+        # 1. Generate the tree structure first
+        for root, dirs, files in os.walk('.'):
+            # Modifying dirs in-place to skip excluded ones
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            
+            level = root.replace('.', '').count(os.sep)
+            indent = ' ' * 4 * level
+            f.write(f"{indent}{os.path.basename(root)}/\n")
+            sub_indent = ' ' * 4 * (level + 1)
+            for file in files:
+                f.write(f"{sub_indent}{file}\n")
+        
+        f.write("\n--- DETAILED FILE CONTENTS ---\n")
+        
+        # 2. Dump the content of the code files
+        for root, dirs, files in os.walk('.'):
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            
+            for file in files:
+                if any(file.endswith(ext) for ext in include_extensions):
+                    file_path = os.path.join(root, file)
+                    f.write(f"\n\nFILE: {file_path}\n")
+                    f.write("-" * 30 + "\n")
+                    try:
+                        with open(file_path, 'r', encoding='utf-8', errors='ignore') as code_file:
+                            f.write(code_file.read())
+                    except Exception as e:
+                        f.write(f"Error reading file: {e}\n")
+                    f.write("\n" + "-" * 30 + "\n")
+
+    print(f"✅ Success! Deep snapshot saved to: {output_file}")
+
+if __name__ == "__main__":
+    generate_snapshot()
+------------------------------
+
+
+FILE: .\api\main.py
+------------------------------
+# Filename: main.py
+# Author: MAYSHLAMY
+# Problem: Task 6 - Robust FastAPI for Medical Data Warehouse
+
+from fastapi import FastAPI, HTTPException
+from sqlalchemy import create_engine, text
+import pandas as pd
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = FastAPI(title="MAYSHLAMY Medical Data API")
+
+# Database Connection
+DB_URL = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+engine = create_engine(DB_URL)
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Medical Data Warehouse API"}
+
+@app.get("/detections")
+def get_all_medical_data():
+    """Fetches all cleaned medical records from the refined layer."""
+    try:
+        query = "SELECT * FROM refined.medical_data"
+        df = pd.read_sql(query, engine)
+        
+        # Clean data for JSON compliance
+        df['image_path'] = df['image_path'].replace({0: "None", "0": "None"})
+        df = df.fillna(0)
+        
+        return df.to_dict(orient="records")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/search/{keyword}")
+def search_medical_data(keyword: str):
+    """Search for specific medical terms using safe parameterized queries."""
+    try:
+        # Using sqlalchemy.text to prevent SQL Injection
+        query = text("SELECT * FROM refined.medical_data WHERE cleaned_content ILIKE :key")
+        df = pd.read_sql(query, engine, params={"key": f"%{keyword}%"})
+        
+        if df.empty:
+            return {"message": f"No records found for: {keyword}"}
+        
+        # Replace image_path 0 with "None" and handle NaNs for JSON compliance
+        df['image_path'] = df['image_path'].replace({0: "None", "0": "None"})
+        df = df.fillna(0) 
+            
+        return df.to_dict(orient="records")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/detections/confirmed")
+def get_confirmed_detections():
+    """Returns only records where YOLO detected medical objects."""
+    try:
+        query = "SELECT * FROM refined.medical_data WHERE has_detection = TRUE"
+        df = pd.read_sql(query, engine)
+        
+        # Standard cleaning
+        df['image_path'] = df['image_path'].replace({0: "None", "0": "None"})
+        df = df.fillna(0)
+        
+        return df.to_dict(orient="records")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+------------------------------
+
+
+FILE: .\medical_warehouse\.gitignore
+------------------------------
+
+target/
+dbt_packages/
+logs/
+
+------------------------------
+
+
+FILE: .\medical_warehouse\README.md
+------------------------------
+Welcome to your new dbt project!
+
+### Using the starter project
+
+Try running the following commands:
+- dbt run
+- dbt test
+
+
+### Resources:
+- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
+- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
+- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
+- Find [dbt events](https://events.getdbt.com) near you
+- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+
+------------------------------
+
+
+FILE: .\medical_warehouse\models\marts\fact_medical_messages.sql
+------------------------------
+{{ config(materialized='table') }}
+
+SELECT
+    msg_key,
+    channel_name,
+    content,
+    message_timestamp,
+    view_count,
+    forward_count,
+    image_path
+FROM {{ ref('stg_telegram_messages') }}
+WHERE content IS NOT NULL AND content != ''
+------------------------------
+
+
+FILE: .\medical_warehouse\models\staging\stg_telegram_messages.sql
+------------------------------
+{{ config(materialized='view') }}
+
+WITH raw_data AS (
+    SELECT * FROM {{ source('raw_data', 'telegram_messages') }}
+)
+
+SELECT
+    id AS msg_key,
+    channel_name,
+    message_id,
+    -- Fix the date format
+    CAST(message_date AS TIMESTAMP) AS message_timestamp,
+    -- Clean text
+    TRIM(message_text) AS content,
+    has_media,
+    COALESCE(views, 0) AS view_count,
+    COALESCE(forwards, 0) AS forward_count,
+    image_path
+FROM raw_data
+WHERE message_text IS NOT NULL OR has_media = True
+------------------------------
+
+
+FILE: .\medical_warehouse\target\compiled\medical_warehouse\models\example\my_first_dbt_model.sql
+------------------------------
+/*
+    Welcome to your first dbt model!
+    Did you know that you can also configure models directly within SQL files?
+    This will override configurations stated in dbt_project.yml
+
+    Try changing "table" to "view" below
+*/
+
+
+
+with source_data as (
+
+    select 1 as id
+    union all
+    select null as id
+
+)
+
+select *
+from source_data
+
+/*
+    Uncomment the line below to remove records with null `id` values
+*/
+
+-- where id is not null
+------------------------------
+
+
+FILE: .\medical_warehouse\target\compiled\medical_warehouse\models\example\my_second_dbt_model.sql
+------------------------------
+-- Use the `ref` function to select from other models
+
+select *
+from "telegram_db"."staging"."my_first_dbt_model"
+where id = 1
+------------------------------
+
+
+FILE: .\medical_warehouse\target\compiled\medical_warehouse\models\marts\fact_medical_messages.sql
+------------------------------
+
+
+SELECT
+    msg_key,
+    channel_name,
+    content,
+    message_timestamp,
+    view_count,
+    forward_count,
+    image_path
+FROM "telegram_db"."staging"."stg_telegram_messages"
+WHERE content IS NOT NULL AND content != ''
+------------------------------
+
+
+FILE: .\medical_warehouse\target\compiled\medical_warehouse\models\staging\stg_telegram_messages.sql
+------------------------------
+
+
+WITH raw_data AS (
+    SELECT * FROM "telegram_db"."raw"."telegram_messages"
+)
+
+SELECT
+    id AS msg_key,
+    channel_name,
+    message_id,
+    -- Fix the date format
+    CAST(message_date AS TIMESTAMP) AS message_timestamp,
+    -- Clean text
+    TRIM(message_text) AS content,
+    has_media,
+    COALESCE(views, 0) AS view_count,
+    COALESCE(forwards, 0) AS forward_count,
+    image_path
+FROM raw_data
+WHERE message_text IS NOT NULL OR has_media = True
+------------------------------
+
+
+FILE: .\medical_warehouse\target\run\medical_warehouse\models\example\my_first_dbt_model.sql
+------------------------------
+
+  
+    
+
+  create  table "telegram_db"."staging"."my_first_dbt_model__dbt_tmp"
+  
+  
+    as
+  
+  (
+    /*
+    Welcome to your first dbt model!
+    Did you know that you can also configure models directly within SQL files?
+    This will override configurations stated in dbt_project.yml
+
+    Try changing "table" to "view" below
+*/
+
+
+
+with source_data as (
+
+    select 1 as id
+    union all
+    select null as id
+
+)
+
+select *
+from source_data
+
+/*
+    Uncomment the line below to remove records with null `id` values
+*/
+
+-- where id is not null
+  );
+  
+------------------------------
+
+
+FILE: .\medical_warehouse\target\run\medical_warehouse\models\example\my_second_dbt_model.sql
+------------------------------
+
+  create view "telegram_db"."staging"."my_second_dbt_model__dbt_tmp"
+    
+    
+  as (
+    -- Use the `ref` function to select from other models
+
+select *
+from "telegram_db"."staging"."my_first_dbt_model"
+where id = 1
+  );
+------------------------------
+
+
+FILE: .\medical_warehouse\target\run\medical_warehouse\models\marts\fact_medical_messages.sql
+------------------------------
+
+  
+    
+
+  create  table "telegram_db"."staging"."fact_medical_messages__dbt_tmp"
+  
+  
+    as
+  
+  (
+    
+
+SELECT
+    msg_key,
+    channel_name,
+    content,
+    message_timestamp,
+    view_count,
+    forward_count,
+    image_path
+FROM "telegram_db"."staging"."stg_telegram_messages"
+WHERE content IS NOT NULL AND content != ''
+  );
+  
+------------------------------
+
+
+FILE: .\medical_warehouse\target\run\medical_warehouse\models\staging\stg_telegram_messages.sql
+------------------------------
+
+  create view "telegram_db"."staging"."stg_telegram_messages__dbt_tmp"
+    
+    
+  as (
+    
+
+WITH raw_data AS (
+    SELECT * FROM "telegram_db"."raw"."telegram_messages"
+)
+
+SELECT
+    id AS msg_key,
+    channel_name,
+    message_id,
+    -- Fix the date format
+    CAST(message_date AS TIMESTAMP) AS message_timestamp,
+    -- Clean text
+    TRIM(message_text) AS content,
+    has_media,
+    COALESCE(views, 0) AS view_count,
+    COALESCE(forwards, 0) AS forward_count,
+    image_path
+FROM raw_data
+WHERE message_text IS NOT NULL OR has_media = True
+  );
+------------------------------
+
+
+FILE: .\scripts\discover_channels.py
+------------------------------
+import os
+from telethon import TelegramClient, functions, types
+from dotenv import load_dotenv
+
+load_dotenv()
+API_ID = os.getenv('TG_API_ID')
+API_HASH = os.getenv('TG_API_HASH')
+
+async def get_discovered_channels(client):
+    """
+    Pass the existing client to this function to find channels.
+    """
+    keywords = ['medicine', 'pharmacy', 'health', 'ethiopia medical']
+    found_channels = set()
+
+    for query in keywords:
+        result = await client(functions.contacts.SearchRequest(q=query, limit=20))
+        for chat in result.chats:
+            if hasattr(chat, 'username') and chat.username:
+                if isinstance(chat, types.Channel) and chat.broadcast:
+                    found_channels.add(chat.username)
+    
+    return list(found_channels)
+------------------------------
+
+
+FILE: .\src\database_loader.py
+------------------------------
+# Filename: database_loader.py
+# Author: MAYSHLAMY
+# Problem: Loading scraped JSON data into PostgreSQL Raw Schema
+
+import os
+import json
+import psycopg2
+from dotenv import load_dotenv
+from datetime import datetime
+
+load_dotenv()
+
+def get_db_connection():
+    return psycopg2.connect(
+        host=os.getenv('DB_HOST'),
+        database=os.getenv('DB_NAME'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        port=os.getenv('DB_PORT')
+    )
+
+def load_json_to_postgres():
+    base_path = 'data/raw/telegram_messages'
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    print("--- Starting Data Load to PostgreSQL ---")
+    
+    # Iterate through date folders (e.g., 2026-02-17)
+    for date_folder in os.listdir(base_path):
+        date_path = os.path.join(base_path, date_folder)
+        
+        if os.path.isdir(date_path):
+            # Iterate through JSON files in each date folder
+            for json_file in os.listdir(date_path):
+                if json_file.endswith('.json'):
+                    file_path = os.path.join(date_path, json_file)
+                    
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        try:
+                            messages = json.load(f)
+                            for msg in messages:
+                                # Prepare the SQL Insert
+                                insert_query = """
+                                INSERT INTO raw.telegram_messages 
+                                (channel_name, message_id, message_date, message_text, has_media, views, forwards, image_path)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                """
+                                values = (
+                                    msg['channel_name'],
+                                    msg['message_id'],
+                                    msg['message_date'],
+                                    msg['message_text'],
+                                    msg['has_media'],
+                                    msg['views'],
+                                    msg['forwards'],
+                                    msg['image_path']
+                                )
+                                cur.execute(insert_query, values)
+                            
+                            print(f"✅ Loaded {len(messages)} messages from {json_file}")
+                        except Exception as e:
+                            print(f"❌ Error loading {json_file}: {e}")
+ 
+    conn.commit()
+    cur.close()
+    conn.close()
+    print("--- All data successfully loaded! ---")
+
+if __name__ == "__main__":
+    load_json_to_postgres()
+------------------------------
+
+
+FILE: .\src\data_cleaner.py
+------------------------------
+# Filename: data_cleaner.py
+# Author: MAYSHLAMY
+# Problem: Task 3 - Final Medical Refinement for Multi-language Data
+
+import pandas as pd
+import re
+from sqlalchemy import create_engine
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+class MedicalDataCleaner:
+    def __init__(self):
+        # Using SQLAlchemy for database connection
+        self.db_url = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+        self.engine = create_engine(self.db_url)
+
+    def load_data(self):
+        query = "SELECT * FROM staging.fact_medical_messages"
+        return pd.read_sql(query, self.engine)
+
+    def clean_text(self, text):
+        if not text:
+            return ""
+        
+        # 1. Block Russian/Cyrillic entirely
+        if re.search(r'[\u0400-\u04FF]', text):
+            return "FILTERED_NOISE"
+
+        # 2. Kill Football, Holiday, and Travel Noise
+        # Patterns found in your specific data sample
+        noise_patterns = [
+            'منتخبنا', 'فوزه', 'كأس العالم', 'አዲስ ዓመት', 'እንኳን አደረሳችሁ', 
+            'መልካም በዓል', 'мексика', 'сомбреро', 'travel', 'vlog', 't.me'
+        ]
+        if any(pattern in text for pattern in noise_patterns):
+            return "FILTERED_NOISE"
+
+        # 3. Medical Relevance Check (English, Amharic, Arabic)
+        medical_keywords = [
+        # English
+        'anemia', 'sarcoidosis', 'mri', 'pediatrics', 'urology', 'pharmacology', 
+        'syndrome', 'patient', 'guidelines', 'hospital', 'medication', 'dose',
+        # Amharic (Medical & Health)
+        'መድሃኒት', 'ጤና', 'ሐኪም', 'ቫይረስ', 'ምርመራ', 'ህክምና', 'ኢንሱሊን', 'ቆሽት',
+        # Arabic (Medical)
+        'صيدلة', 'طبية', 'علاج', 'أدوية', 'كيس', 'تشخيص', 'فحص'
+        ]
+        
+        text_lower = text.lower()
+        has_medical_term = any(med in text_lower for med in medical_keywords)
+        
+        # If no medical keywords are found and the message is short, it's junk
+        if not has_medical_term and len(text.split()) < 15:
+            return "FILTERED_NOISE"
+
+        # 4. Standard Cleaning (URLs and Whitespace)
+        text = re.sub(r'http\S+|www\S+|https\S+|@\w+', '', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        return text
+
+    def save_data(self, df):
+        print("--- Saving cleaned data to refined.medical_data ---")
+        # Overwrite with the professional, noise-free version
+        df.to_sql('medical_data', self.engine, schema='refined', if_exists='replace', index=False)
+        print("✅ Data successfully saved to refined.medical_data!")
+
+    def run_pipeline(self):
+        print("--- Loading data from Warehouse ---")
+        df = self.load_data()
+        
+        print("--- Cleaning text and applying Medical Filters ---")
+        df['cleaned_content'] = df['content'].apply(self.clean_text)
+        
+        # REMOVE the noise rows so they don't appear in our final table
+        initial_count = len(df)
+        df = df[df['cleaned_content'] != "FILTERED_NOISE"]
+        final_count = len(df)
+        
+        print(f"--- Filtered out {initial_count - final_count} noise/ad messages ---")
+        print(f"--- Final medical record count: {final_count} ---")
+        
+        print("\nSample of Cleaned Data:")
+        print(df[['content', 'cleaned_content']].head())
+        
+        self.save_data(df)
+        return df
+
+if __name__ == "__main__":
+    cleaner = MedicalDataCleaner()
+    cleaned_df = cleaner.run_pipeline()
+------------------------------
+
+
+FILE: .\src\link_detections.py
+------------------------------
+# Filename: link_detections.py
+# Author: MAYSHLAMY
+# Problem: Linking image detection results back to the database with schema protection
+
+import os
+import psycopg2
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def link_results():
+    # 1. Establish connection to the medical warehouse
+    conn = psycopg2.connect(
+        host=os.getenv('DB_HOST'),
+        database=os.getenv('DB_NAME'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        port=os.getenv('DB_PORT')
+    )
+    cur = conn.cursor()
+    
+    # 2. SCHEMA PROTECTION: Ensure columns exist in the refined table
+    # This prevents the "UndefinedColumn" error if the table was recently replaced
+    print("--- Checking Database Schema ---")
+    cur.execute("""
+        ALTER TABLE refined.medical_data 
+        ADD COLUMN IF NOT EXISTS has_detection BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS detection_count INTEGER DEFAULT 0;
+    """)
+    conn.commit()
+
+    # 3. Identify detected images
+    detection_folder = 'data/detections'
+    if not os.path.exists(detection_folder):
+        print(f"❌ Error: Folder {detection_folder} not found!")
+        return
+
+    detected_files = [f for f in os.listdir(detection_folder) if f.startswith('detected_')]
+    
+    print(f"--- Linking {len(detected_files)} detections to Database ---")
+    
+    # 4. Link results using fuzzy matching on the image path
+    for file_name in detected_files:
+        # Extract the original filename (e.g., 'detected_9075.jpg' -> '9075.jpg')
+        original_name = file_name.replace('detected_', '')
+        
+        query = """
+            UPDATE refined.medical_data 
+            SET has_detection = TRUE
+            WHERE image_path LIKE %s
+        """
+        # We use % wrapping to match the filename within the full system path string
+        cur.execute(query, (f"%{original_name}%",))
+    
+    conn.commit()
+    print("✅ Database updated with AI detection flags!")
+    
+    # 5. Cleanup
+    cur.close()
+    conn.close()
+
+if __name__ == '__main__':
+    link_results()
+------------------------------
+
+
+FILE: .\src\object_detector.py
+------------------------------
+# Filename: object_detector.py
+# Author: MAYSHLAMY
+# Problem: Task 4 - Object Detection on Scraped Medical Images
+
+import os
+import cv2
+from ultralytics import YOLO
+
+class MedicalObjectDetector:
+    def __init__(self, model_name='yolov8n.pt'):
+        print(f"--- Loading Model: {model_name} ---")
+        self.model = YOLO(model_name)
+
+# Updated detection loop inside src/object_detector.py
+
+    def detect_in_folder(self, folder_path):
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                if file.endswith(('.jpg', '.png', '.jpeg')):
+                    img_path = os.path.join(root, file)
+                    
+                    # Check if file is empty before processing
+                    if os.path.getsize(img_path) == 0:
+                        print(f"⚠️ Skipping empty file: {file}")
+                        continue
+
+                    try:
+                        print(f"Processing: {file}")
+                        results = self.model(img_path)
+                        
+                        for result in results:
+                            # Only save if we actually found something
+                            if len(result.boxes) > 0:
+                                result.save(filename=f"detected_{file}")
+                                for box in result.boxes:
+                                    label = self.model.names[int(box.cls[0])]
+                                    print(f"  - Found: {label} ({float(box.conf[0]):.2f})")
+                            else:
+                                print(f"  - No objects detected in {file}")
+                                
+                    except Exception as e:
+                        print(f"❌ Error processing {file}: {e}")
+                        continue # Keep going even if one image fails
+
+if __name__ == "__main__":
+    detector = MedicalObjectDetector()
+    # Point this to your actual image folder
+    image_dir = 'data/raw/images'
+    detector.detect_in_folder(image_dir)
+------------------------------
+
+
+FILE: .\src\scraper.py
+------------------------------
+import os
+import sys
+import json
+from datetime import datetime
+from telethon import TelegramClient
+from dotenv import load_dotenv
+
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from scripts.discover_channels import get_discovered_channels
+
+
+load_dotenv()
+API_ID = os.getenv('TG_API_ID')
+API_HASH = os.getenv('TG_API_HASH')
+
+class Solution:
+    def __init__(self):
+        self.client = TelegramClient('scraping_session', API_ID, API_HASH)
+        # We start with your specific required channels
+        self.target_channels = ['CheMed123', 'tikvahpharma', 'lobelia4cosmetics']
+
+    async def scrape_channel(self, channel_username):
+        print(f"--- Scraping: {channel_username} ---")
+        messages_data = []
+        
+        try:
+            image_dir = f"data/raw/images/{channel_username}"
+            os.makedirs(image_dir, exist_ok=True)
+
+            async for message in self.client.iter_messages(channel_username, limit=100):
+                data = {
+                    "message_id": message.id,
+                    "channel_name": channel_username,
+                    "message_date": str(message.date),
+                    "message_text": message.text or "",
+                    "has_media": message.media is not None,
+                    "views": message.views or 0,
+                    "forwards": message.forwards or 0,
+                    "image_path": None
+                }
+
+                if message.photo:
+                    file_path = f"{image_dir}/{message.id}.jpg"
+                    await self.client.download_media(message.photo, file=file_path)
+                    data["image_path"] = file_path
+                
+                messages_data.append(data)
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            json_dir = f"data/raw/telegram_messages/{today_str}"
+            os.makedirs(json_dir, exist_ok=True)
+            
+            with open(f"{json_dir}/{channel_username}.json", 'w', encoding='utf-8') as f:
+                json.dump(messages_data, f, indent=4, ensure_ascii=False)
+            
+            print(f"✅ Saved {len(messages_data)} records for {channel_username}")
+
+        except Exception as e:
+            print(f"❌ Error on {channel_username}: {e}")
+
+    async def run(self):
+        await self.client.start()
+        
+        # 1. Discover more channels
+        discovered = await get_discovered_channels(self.client)
+        
+        # 2. Combine required + discovered (use set to avoid duplicates)
+        all_channels = list(set(self.target_channels + discovered))
+        print(f"Total unique channels to scrape: {len(all_channels)}")
+
+        # 3. Scrape them all
+        for channel in all_channels:
+            await self.scrape_channel(channel)
+
+if __name__ == '__main__':
+    sol = Solution()
+    with sol.client:
+        sol.client.loop.run_until_complete(sol.run())
+------------------------------
