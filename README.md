@@ -1,97 +1,207 @@
-# 🏥 Medical Data Warehouse: Telegram to API Pipeline
+# 🏥 Medical Telegram Data Warehouse
+## From Raw Telegram Data to an Analytical API
 
 **Author:** Mikiyas Dawit Abera  
 **Project Type:** Data Engineering & AI Integration  
-**Stack:** Python, PostgreSQL, FastAPI, YOLOv8, dbt, Playwright
+**Tech Stack:** Python, PostgreSQL, dbt, Dagster, FastAPI, YOLOv8, Playwright
+
+---
 
 ## 📌 Project Overview
-This project is a comprehensive data pipeline that extracts medical information from Amharic and English Telegram channels, cleans the data, runs AI object detection on associated images, and serves the refined data through a robust FastAPI backend.
 
-The goal is to provide a searchable, structured "Warehouse" for medical updates, specifically focusing on Ethiopian public health data like Marburg Virus updates and pharmaceutical information.
+This project implements an end-to-end data engineering pipeline that extracts medical and pharmaceutical information from public Ethiopian Telegram channels, transforms and enriches the data, and exposes it through a production-ready analytical API.
+
+The system is designed to support analytical questions around:
+- medical product visibility and availability,
+- public health updates (e.g., outbreak-related posts),
+- visual content usage across Telegram channels,
+- keyword-based medical trend analysis.
+
+The final output is a clean, structured PostgreSQL data warehouse served through FastAPI.
 
 ---
 
 ## 🏗️ System Architecture
 
-1.  **Ingestion:** Telegram Scraper extracts raw messages and images.
-2.  **Transformation (dbt):** Raw data is staged in PostgreSQL and structured using dbt.
-3.  **Refinement (Python):** * **Cleaning:** Removes emojis, ads, and irrelevant football/news content.
-    * **AI Logic:** Uses **YOLOv8** to detect medical objects in images.
-4.  **Serving:** A **FastAPI** interface allows users to query the warehouse via keywords or detection status.
+The pipeline follows a modern ELT architecture:
+
+1. **Ingestion**  
+   Telegram messages and images are scraped from public channels and stored in a raw data lake.
+
+2. **Loading & Transformation (dbt)**  
+   Raw JSON data is loaded into PostgreSQL and transformed into a dimensional star schema using dbt.
+
+3. **Data Enrichment (Computer Vision)**  
+   YOLOv8 is used to detect objects in images and classify visual content.
+
+4. **Serving Layer**  
+   A FastAPI application exposes analytical endpoints for downstream consumption.
 
 ---
 
-## 🚀 API Features & Documentation
+## 🧠 Key Features
 
-The API is fully documented with Swagger UI and supports multilingual search (English & Amharic).
+- Multilingual support (Amharic & English)
+- Structured data warehouse with dbt testing
+- AI-powered image enrichment using YOLOv8
+- Secure, parameterized database queries
+- Fully documented REST API (Swagger / OpenAPI)
+- Pipeline orchestration and observability with Dagster
 
-### 1. Global Data Access
-Fetches all processed medical records, including cleaned text and detection flags.
+---
+
+## 🚀 API Capabilities
+
+The API is automatically documented and accessible via Swagger UI.
+
+### 1. Global Medical Records
+Returns all cleaned and processed medical messages.
+
 ![All Medical Records](./assets/api_all_data.png)
 
-### 2. YOLO Confirmed Detections
-Filters the warehouse to return only records where the AI successfully identified medical equipment or medicine.
+---
+
+### 2. YOLO-Confirmed Visual Content
+Filters records where medical objects were detected in images.
+
 ![Confirmed Detections](./assets/api_confirmed_only.png)
 
-### 3. Smart Keyword Search
-Supports case-insensitive search and partial matches for medical terms.
-**Example:** Searching for *"Marburg"* returns all daily virus updates.
+---
+
+### 3. Keyword-Based Medical Search
+Supports case-insensitive and partial keyword search.
+
+**Example:** Searching for `Marburg` returns all related outbreak updates.
+
 ![Search Results](./assets/api_search_results.png)
 
 ---
 
-## 🛠️ Technical Implementation
+## 🛠️ Technical Highlights
 
 ### Data Cleaning
-Standardized cleaning logic to ensure high-quality text for downstream analysis:
+
 ```python
 def clean_text(text):
-    # Removes URLs, emojis, and non-medical noise
-    # Standardizes Amharic and English scripts
+    """
+    Removes URLs, emojis, advertisements, and non-medical noise.
+    Normalizes Amharic and English text.
+    """
     ...
-
-```
-
-### Database Protection
-
-The API utilizes **SQLAlchemy Parameterized Queries** to prevent SQL injection attacks:
-
-```python
-query = text("SELECT * FROM refined.medical_data WHERE cleaned_content ILIKE :key")
-df = pd.read_sql(query, engine, params={"key": f"%{keyword}%"})
-
-```
-
-### Automated Documentation
-
-The screenshots above were generated using an automated **Playwright** script that executes live API calls and captures the full-page response.
+````
 
 ---
 
-## 📁 Folder Structure
+### Database Security
+
+All database access uses parameterized SQL queries to prevent SQL injection:
+
+```python
+query = text("""
+    SELECT *
+    FROM refined.medical_data
+    WHERE cleaned_content ILIKE :key
+""")
+
+df = pd.read_sql(query, engine, params={"key": f"%{keyword}%"})
+```
+
+---
+
+### Automated Documentation
+
+API screenshots were generated automatically using Playwright to ensure documentation reflects real API responses.
+
+---
+
+## 📁 Project Structure
 
 ```text
 .
-├── api/                # FastAPI application logic
-├── src/                # Cleaning & YOLO detection scripts
-├── models/             # dbt models for SQL transformation
-├── assets/             # Automated API documentation screenshots
-├── .env                # Database credentials (hidden)
-└── main.py             # Entry point for the API
-
+├── api/
+│   └── main.py
+├── src/
+├── medical_warehouse/
+├── assets/
+├── orchestrator.py
+├── requirements.txt
+├── .env
+└── README.md
 ```
+
+---
 
 ## ⚙️ Setup & Installation
 
-1. Clone the repository.
-2. Install dependencies: `pip install -r requirements.txt`
-3. Configure your `.env` with PostgreSQL credentials.
-4. Run the API: `uvicorn api.main:app --reload`
-5. Access docs at: `http://127.0.0.1:8000/docs`
+### Prerequisites
 
+* Python 3.9+
+* PostgreSQL
+* Telegram API credentials
 
-### 🌟 Final Check for MAYSHLAMY:
-1.  **GitHub Link:** Since we discussed your GitHub format before, remember to name your file `main.py` inside the `api/` folder so your links like `https://github.com/MAYSHLAMY/A2SV_Solved_Questions/blob/main/api/main.py` work perfectly.
-2.  **Images:** Make sure the filenames in the `assets/` folder match exactly what is written in the Markdown.
+### Steps
 
-**Would you like me to help you write the `requirements.txt` file so anyone can install your project with one command?**
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/MAYSHLMAY/medical-telegram-warehouse.git
+cd medical-telegram-warehouse
+```
+
+2. **Install dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+3. **Configure environment variables**
+   Create a `.env` file:
+
+```env
+TG_API_ID=your_api_id
+TG_API_HASH=your_api_hash
+DB_HOST=localhost
+DB_NAME=medical_warehouse
+DB_USER=postgres
+DB_PASSWORD=postgres
+```
+
+4. **Run the API**
+
+```bash
+uvicorn api.main:app --reload
+```
+
+5. **Open API documentation**
+
+```
+http://127.0.0.1:8000/docs
+```
+
+---
+
+## ⏱️ Pipeline Orchestration
+
+The entire pipeline is orchestrated using Dagster:
+
+```bash
+dagster dev -f orchestrator.py
+```
+
+Dagster provides:
+
+* Visual data lineage
+* Failure recovery and retries
+* A single entry point for the full pipeline
+
+---
+
+## 📚 Learning Outcomes
+
+* Modern ELT pipeline design
+* Dimensional modeling (Star Schema)
+* dbt testing and documentation
+* Computer vision in data pipelines
+* Secure API development
+* Pipeline orchestration and observability
+
