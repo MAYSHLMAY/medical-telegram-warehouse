@@ -88,10 +88,3 @@ The screenshots above were generated using an automated **Playwright** script th
 3. Configure your `.env` with PostgreSQL credentials.
 4. Run the API: `uvicorn api.main:app --reload`
 5. Access docs at: `http://127.0.0.1:8000/docs`
-
-
-### 🌟 Final Check for MAYSHLAMY:
-1.  **GitHub Link:** Since we discussed your GitHub format before, remember to name your file `main.py` inside the `api/` folder so your links like `https://github.com/MAYSHLAMY/A2SV_Solved_Questions/blob/main/api/main.py` work perfectly.
-2.  **Images:** Make sure the filenames in the `assets/` folder match exactly what is written in the Markdown.
-
-**Would you like me to help you write the `requirements.txt` file so anyone can install your project with one command?**
