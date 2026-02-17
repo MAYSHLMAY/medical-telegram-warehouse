@@ -1,12 +1,37 @@
-# Python
+# Python Standard
 __pycache__/
 *.py[cod]
 *$py.class
 venv/
 .env
 
+# Data & Logs
 data/
 *.log
 
+# Telegram Sessions
 *.session
 *.session-journal
+
+# --- NEW ADDITIONS ---
+
+# dbt (Data Build Tool)
+# These folders contain large compiled SQL files and logs
+target/
+dbt_packages/
+dbt_modules/
+
+# Playwright
+# To prevent uploading automated browser binaries or test traces
+test-results/
+playwright-report/
+blob-report/
+playwright/.local-browsers/
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
